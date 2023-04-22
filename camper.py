@@ -2,11 +2,14 @@ from pydexcom import Dexcom
 from status import Status
 
 class Camper:
-    def __init__(self, username: str, password: str, low, high):
+    def __init__(self, username, password, low, high, fname, lname, fake_bgvs):
         self.dexcom = None
-        self.create_assign_dexcom(username, password)
+        #self.create_assign_dexcom(username, password) #Skip until actual credentials are passed in
         self.low = low
         self.high = high
+        self.fname = fname
+        self.lname = lname
+        self.fake_bgvs = fake_bgvs
 
     def create_assign_dexcom(self, username, password):
         new_dexcom = Dexcom(username, password)
@@ -61,6 +64,10 @@ class Camper:
         else:
             status = Status(1, "Stable")
             return status
+        
+    def __str__(self):
+        out_str = f"{self.fname} {self.lname} = {self.fake_bgvs}"
+        return out_str
         
             
 
