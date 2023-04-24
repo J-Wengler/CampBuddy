@@ -11,3 +11,4 @@ from campbuddy import CampBuddy
 
 
 cb = CampBuddy("/Users/jameswengler/test_users.csv")
+cb.day_report()

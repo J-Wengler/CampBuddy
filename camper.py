@@ -10,35 +10,42 @@ class Camper:
         self.fname = fname
         self.lname = lname
         self.fake_bgvs = fake_bgvs
+        self.fw = .25
+        self.sw = .25
+        self.tw = .50
 
     def create_assign_dexcom(self, username, password):
         new_dexcom = Dexcom(username, password)
         self.dexcom = new_dexcom
 
-    def check_status(self):
-        bgvs = self.dexcom.get_glucose_readings(minutes=20, max_count= 4)
-        if bgvs == None:
-            status = Status(5, "missing data from last 20 mins")
-            return status
-        elif len(bgvs) < 4:
-            numerical_bgvs = []
-            for bg in bgvs:
-                if bg == None:
-                    numerical_bgvs.append("NA")
+    def check_status(self): #This function will need to be heavily edited to use real data instead of the real data
+        #bgvs = self.dexcom.get_glucose_readings(minutes=20, max_count= 4)
+        bgvs = self.fake_bgvs
+        if bgvs == [-99, -99, -99, -99]:
+            stat = Status(5, f"{self.fname} {self.lname} has no data for the last 20 minutes")
+            self.status = stat
+        elif -99 in bgvs:
+            bgvs_list = []
+            for num in bgvs:
+                if num == -99:
+                    bgvs_list.append("-")
                 else:
-                    numerical_bgvs.append(str(bg.value))
-            message = str(numerical_bgvs)
-            status = Status(4, message)
-            return status
-        elif self.check_bgvs(bgvs):
-            status = self.calc_slopes(bgvs)
-            return status
+                    bgvs_list.append(num)
+            stat = Status(4, f"{self.fname} {self.lname} has incomplete data -> {bgvs_list}")
+            self.status = stat
+        else:
+            stat = self.calc_slopes(bgvs)
+            self.status = stat
 
-    def calc_slopes(self, bgvs):
-        data_1 = bgvs[3].value
-        data_2 = bgvs[2].value
-        data_3 = bgvs[1].value
-        data_4 = bgvs[0].value
+    def calc_slopes(self, bgvs): #Again, Change this to set the data_1, data_2, etc. to use the .value function from the bg dexcom obj
+        # data_1 = bgvs[3]#.value
+        # data_2 = bgvs[2]#.value
+        # data_3 = bgvs[1]#.value
+        # data_4 = bgvs[0]#.value
+        data_1 = bgvs[0]
+        data_2 = bgvs[1]
+        data_3 = bgvs[2]
+        data_4 = bgvs[3]
         numerical_values = [data_1,data_2,data_3,data_4]
 
         first_slope = data_2 - data_1
@@ -54,15 +61,15 @@ class Camper:
     def evaluate_threshold(self, cur_bg, last_bg, slope, bgvs):
         pred_bg = cur_bg + (slope * 3)
         if pred_bg <= self.low:
-            message_str = f"15 Min Prediction: {pred_bg} Last 4 bgvs = {bgvs}"
+            message_str = f"{self.fname} {self.lname} -- bgvs: {bgvs} -- prediction: {pred_bg}"
             status = Status(2, message_str)
             return status
         elif pred_bg >= self.high:
-            message_str = f"15 Min Prediction: {pred_bg} Last 4 bgvs = {bgvs}"
+            message_str = f"{self.fname} {self.lname} -- bgvs: {bgvs} -- prediction: {pred_bg}"
             status = Status(3, message_str)
             return status
         else:
-            status = Status(1, "Stable")
+            status = Status(1, f"{self.fname} {self.lname} is stable")
             return status
         
     def __str__(self):
